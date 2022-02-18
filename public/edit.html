@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Editor</title>
+    <link rel="stylesheet" href="https://apps.bdimg.com/libs/fontawesome/4.2.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />-->
+    <style type="text/css">
+    .btn {
+        background: #AAA;
+        padding: 5px 10px;
+        border-radius: 3px;
+        color: #EEE;
+        text-decoration: none;
+    }
+    .btn:hover {
+        color: #FFF;
+    }
+    .btn-default {
+        background: #0D7C3F;
+    }
+    .btn-warn {
+        background: #AD0606;
+    }
+    .navigation {
+        height: 60px;
+        background: #0D7C3F;
+    }
+    .navigation ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    .navigation li .fa {
+        font-size: 38px;
+        line-height: 60px;
+        display: inline-block;
+    }
+    .navigation li {
+        display: inline-block;
+        min-width: 40px;
+        text-align: center;
+        font-size: 20px;
+        font-family: sans-serif;
+        padding: 0 5px;
+        height: 60px;
+        line-height: 100%;
+    }
+    .navigation li:hover {
+        background: #AAA;
+        color: #FFF;
+        cursor: pointer;
+    }
+    .navigation li a {
+        color: #EEE;
+        line-height: 60px;
+        text-decoration: none;
+        vertical-align: top;
+    }
+    .body-container {
+        width: 80%;
+        margin: 20px auto;
+    }
+    .body-container table {
+        width: 100%;
+    }
+    table thead th {
+        font-weight: 700;
+    }
+    table thead th,
+    table tbody td {
+        text-align: left;
+        padding: 5px 10px;
+    }
+    .color-circle {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        vertical-align: top;
+        margin-right: 5px;
+    }
+    form .form-group {
+        vertical-align: top;
+        font-family: sans-serif;
+        min-height: 30px;
+        padding: 5px;
+    }
+    form .form-group input,
+    form .form-group textarea {
+        height: 20px;
+        padding: 5px;
+        width:  200px;
+    }
+    form .form-group textarea {
+        height: 100px;
+    }
+    form label {
+        display: inline-block;
+        width: 120px;
+        text-align: right;
+        font-weight: 700;
+        padding: 0 5px;
+    }
+    .form-group .btn-default {
+        padding: 5px 15px;
+        font-size: 18px;
+        font-family: sans-serif;
+        border: 1px solid grey;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <ul>
+            <li><a href="/"><i class="fa fa-home"></i></a></li>
+            <li><a href="/">Category</a></li>
+        </ul>
+    </div>
+    <div class="body-container" id="body-container">
+        <form v-if="data">
+            <div class="form-group">
+                <a class="btn btn-default" v-on:click="doSave()">&nbsp;SAVE&nbsp;<i class="fa fa-check-circle" v-if="data.saved"></i></a>
+            </div>
+            <div class="form-group">
+                <label>NAME:</label>
+                <input type="text" v-model="data.name" v-on:change="data.saved=false"/>
+            </div>
+            <div class="form-group">
+                <label>DESCRIPTION:</label>
+                <textarea v-model="data.description" v-on:change="data.saved=false"></textarea>
+            </div>
+            <div class="form-group">
+                <label>WIDTH:</label>
+                <input type="number" v-model="data.width" v-on:change="data.saved=false"/>
+            </div>
+            <div class="form-group">
+                <label>HEIGHT:</label>
+                <input type="number" v-model="data.height" v-on:change="data.saved=false"/>
+            </div>
+            <div class="form-group">
+                <label>COLOR:</label>
+                <input type="text" v-model="data.color" v-on:change="data.saved=false" />
+            </div>
+            <div class="form-group">
+                <label>COMMENT:</label>
+                <textarea v-model="data.comment" v-on:change="data.saved=false"></textarea>
+            </div>
+        </form>
+        <div v-else>No result found.</div>
+    </div>
+    <script type="text/javascript">
+    var jsonData = {{jsonData}};
+    var vueInst = new Vue({
+        el: '#body-container',
+        data: {
+            data: jsonData,
+            rectangleFigure: function(data) {
+                return '<div style="display:inline-block;background:#' + data.color + ';height:' + data.height + 'px;width:' + data.width + 'px"></div>';
+            }
+        },
+        methods: {
+            viewHref: function(row) {
+                return '/view?id=' + row.id;
+            },
+            editHref: function(row) {
+                return '/edit?id=' + row.id;
+            },
+            deleteHref: function(row) {
+                return '/delete?id=' + row.id;
+            },
+            colorStyle: function(row) {
+                return 'background:#' + row.color;
+            },
+            doSave: function() {
+                var $this = this;
+                var data = this.data;
+                axios({
+                    method: 'POST',
+                    url   : '/save',
+                    data  : {
+                        id  : data.id ? data.id : 0,
+                        name: data.name,
+                        description: data.description,
+                        width: data.width,
+                        height: data.height,
+                        color: data.color,
+                        comment: data.comment
+                    },
+                    headers: {
+                        'X-Request-With': 'XMLHttpRequest'
+                    }
+                }).then((response) => {
+                    if(response.data && response.data.success) {
+                        $this.data.saved = true;
+                    }
+                });
+            }
+        },
+        filters: {}
+    });
+    </script>
+</body>
+</html>
